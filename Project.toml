@@ -1,0 +1,7 @@
+name = "TensorAlgebra"
+uuid = "84c0c5c2-3611-43dd-b4f2-3e690a28d148"
+authors = ["Eric Forgy <Eric.Forgy@cavalre.com>"]
+version = "0.1.0"
+
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
