@@ -20,11 +20,11 @@ kind(::AbstractSpace{K,S}) where {K,S} = S
 
 label(::AbstractSpace{K,S,L}) where {K,S,L} = L
 
-field(::Type{Vector{K}}) where {K} = K
+field(::Vector{K}) where {K} = K
 
-field(::Type{<:AbstractSpace{K}}) where {K} = K
+field(::AbstractSpace{K}) where {K} = K
 
-field(::Type{<:Tensor{K}}) where {K} = K
+field(::Tensor{K}) where {K} = K
 
 rank(::Tensor{K,R}) where {K,R} = R
 
@@ -39,13 +39,11 @@ Base.size(t::Tensor) = size(t.array)
 
 Base.getindex(t::Tensor,ix) = getindex(t.array, ix)
 
-Covector(L::Symbol,a::Vector{K}) where {K} = Covector{K,L}(a)
+Covector(vs::VectorSpace{K},a) where {K} = Covector{K,label(vs)}(a)
 
 Vector(L::Symbol,a::Array{K,1}) where {K} = Tensor{K,1,VectorSpace{K,Covector{K,L},L}}(a)
 
-VectorSpace(L::Symbol,::Type{S}) where {S} = VectorSpace{field(S),S,L}()
-
-VectorSpace(::Type{S}) where {S} = VectorSpace{field(S),S,:V}()
+VectorSpace(L::Symbol,::Type{K}) where {K} = VectorSpace{K,Vector{K},L}()
 
 ProductSpace(args::VectorSpace{K}...) where {K} = 
     ProductSpace{K,length(args),(args...,),Symbol(join(args," x "))}()
