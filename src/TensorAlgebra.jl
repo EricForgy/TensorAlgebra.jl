@@ -4,11 +4,11 @@ using LinearAlgebra
 
 export Tensor, Covector, VectorSpace, ProductSpace, kind, label, field, rank, dual, domain, ×
 
-abstract type AbstractSpace{K,S,L} end
+abstract type AbstractSpace{K,R,S,L} end
 
-struct VectorSpace{K,S,L} <: AbstractSpace{K,S,L} end
+struct VectorSpace{K,S,L} <: AbstractSpace{K,1,S,L} end
 
-struct ProductSpace{K,R,S,L} <: AbstractSpace{K,S,L} end
+struct ProductSpace{K,R,S,L} <: AbstractSpace{K,R,S,L} end
 
 struct Tensor{K,R,D <: AbstractSpace{K}} <: AbstractArray{K,R}
     array::Array{K,R}
@@ -16,17 +16,19 @@ end
 
 const Covector{K,L} = Tensor{K,1,VectorSpace{K,Vector{K},L}}
 
-kind(::AbstractSpace{K,S}) where {K,S} = S
-
-label(::AbstractSpace{K,S,L}) where {K,S,L} = L
-
-field(::Vector{K}) where {K} = K
-
 field(::AbstractSpace{K}) where {K} = K
 
 field(::Tensor{K}) where {K} = K
 
+field(::Vector{K}) where {K} = K
+
+rank(::AbstractSpace{K,R}) where {K,R} = R
+
 rank(::Tensor{K,R}) where {K,R} = R
+
+kind(::AbstractSpace{K,R,S}) where {K,R,S} = S
+
+label(::AbstractSpace{K,R,S,L}) where {K,R,S,L} = L
 
 dual(::VectorSpace{K,Vector{K},L}) where {K,L} = VectorSpace{K,Covector{K,L},L}()
 
