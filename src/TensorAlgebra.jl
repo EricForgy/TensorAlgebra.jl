@@ -2,19 +2,21 @@ module TensorAlgebra
 
 using LinearAlgebra
 
-export Tensor, Covector, VectorSpace, ProductSpace, kind, label, field, rank, dual, domain, ×
+export Tensor, Covector, VectorSpace, ProductSpace, spaces, label, field, degree, dual, domain, ×
 
-abstract type AbstractSpace{K,R,S,L} end
+abstract type AbstractSpace{K,N,L} end
 
-struct VectorSpace{K,S,L} <: AbstractSpace{K,1,S,L} end
+struct VectorSpace{K,L} <: AbstractSpace{K,1,L} end
 
-struct ProductSpace{K,R,S,L} <: AbstractSpace{K,R,S,L} end
+struct DualSpace{K,L} <: AbstractSpace{K,1,L} end
 
-struct Tensor{K,R,D <: AbstractSpace{K}} <: AbstractArray{K,R}
-    array::Array{K,R}
+struct ProductSpace{K,N,S,L} <: AbstractSpace{K,N,L} end
+
+struct Tensor{K,N,D <: AbstractSpace{K}} <: AbstractArray{K,N}
+    array::Array{K,N}
 end
 
-const Covector{K,L} = Tensor{K,1,VectorSpace{K,Vector{K},L}}
+const Covector{K,L} = Tensor{K,1,VectorSpace{K,L}}
 
 field(::AbstractSpace{K}) where {K} = K
 
@@ -22,37 +24,37 @@ field(::Tensor{K}) where {K} = K
 
 field(::Vector{K}) where {K} = K
 
-rank(::AbstractSpace{K,R}) where {K,R} = R
+degree(::AbstractSpace{K,N}) where {K,N} = N
 
-rank(::Tensor{K,R}) where {K,R} = R
+degree(::Tensor{K,N}) where {K,N} = N
 
-kind(::AbstractSpace{K,R,S}) where {K,R,S} = S
+spaces(::ProductSpace{K,N,S}) where {K,N,S} = S
 
-label(::AbstractSpace{K,R,S,L}) where {K,R,S,L} = L
+label(::AbstractSpace{K,N,L}) where {K,N,L} = L
 
-dual(::VectorSpace{K,Vector{K},L}) where {K,L} = VectorSpace{K,Covector{K,L},L}()
+dual(::VectorSpace{K,L}) where {K,L} = DualSpace{K,L}()
 
-dual(::VectorSpace{K,Covector{K,L},L}) where {K,L} = VectorSpace{K,Vector{K},L}()
+dual(::DualSpace{K,L}) where {K,L} = VectorSpace{K,L}()
 
-dual(ts::ProductSpace) = ProductSpace(dual.(kind(ts))...)
-# dual(ts::ProductSpace) = ProductSpace(reverse(dual.(kind(ts)))...) # Consider reversing?
+dual(ps::ProductSpace) = ProductSpace(dual.(spaces(ps))...)
+# dual(ps::ProductSpace) = ProductSpace(reverse(dual.(spaces(ps)))...) # Consider reversing?
 
-Covector(vs::VectorSpace{K},a) where {K} = Covector{K,label(vs)}(a)
+Covector(::VectorSpace{K,L},a) where {K,L} = Tensor{K,1,VectorSpace{K,L}}(a)
 
-Vector(vs::VectorSpace{K},a) where {K} = Tensor{K,1,VectorSpace{K,Covector{K,label(vs)},label(vs)}}(a)
+Vector(::VectorSpace{K,L},a) where {K,L} = Tensor{K,1,DualSpace{K,L}}(a)
 
-VectorSpace(L::Symbol,::Type{K}) where {K} = VectorSpace{K,Vector{K},L}()
+VectorSpace(L::Symbol,::Type{K}) where {K} = VectorSpace{K,L}()
 
-ProductSpace(args::VectorSpace{K}...) where {K} = 
+ProductSpace(args::AbstractSpace{K,1}...) where {K} = 
     ProductSpace{K,length(args),(args...,),Symbol(join(args," × "))}()
 
-Tensor(::P,a::Array{K,R}) where {K,R,P<:ProductSpace{K,R}} = Tensor{K,R,P}(a)
+Tensor(::D,a::Array{K,N}) where {K,N,D<:AbstractSpace{K,N}} = Tensor{K,N,D}(a)
 
-domain(::Tensor{K,R,D}) where {K,R,D} = D()
+domain(::Tensor{K,1,D}) where {K,D} = D()
 
-# domain(::Tensor{K,R,D}) where {K,R,D} = D
+domain(::Tensor{K,N,D}) where {K,N,D} = D
     
-function (f::Tensor{K,R})(x::Tensor{K,R}) where {K,R}
+function (f::Tensor{K,N})(x::Tensor{K,N}) where {K,N}
     dual(domain(f)) === domain(x) || error("Domain mismatch")
     dot(f.array, x.array)
 end
@@ -61,30 +63,28 @@ Base.size(t::Tensor) = size(t.array)
 
 Base.getindex(t::Tensor,ix::Vararg{Int}) = getindex(t.array, ix...)
 
-Base.isassigned(t::Tensor, ix::Vararg{Int}) = isassigned(t.array, ix...)
-
 Base.:^(v::AbstractSpace,::typeof(*)) = dual(v)
 
-Base.first(ts::ProductSpace) = first(kind(ts))
+Base.first(ts::ProductSpace) = first(spaces(ts))
 
-Base.last(ts::ProductSpace) = last(kind(ts))
+Base.last(ts::ProductSpace) = last(spaces(ts))
 
-Base.in(t::Tensor{K,1}, vs::VectorSpace{K}) where {K} = dual(domain(t)) === vs
+Base.in(t::Tensor{K,1}, vs::AbstractSpace{K,1}) where {K} = dual(domain(t)) === vs
 
-×(vs1::VectorSpace{K},vs2::VectorSpace{K}) where {K} = ProductSpace(vs1,vs2)
+×(vs1::AbstractSpace{K,1},vs2::AbstractSpace{K,1}) where {K} = ProductSpace(vs1,vs2)
 
-×(vs::VectorSpace{K},ts::ProductSpace{K}) where {K} = ProductSpace(vs,kind(ts)...)
+×(vs::AbstractSpace{K,1},ts::ProductSpace{K}) where {K} = ProductSpace(vs,spaces(ts)...)
 
-×(ts::ProductSpace{K},vs::VectorSpace{K}) where {K} = ProductSpace(kind(ts)...,vs)
+×(ts::ProductSpace{K},vs::AbstractSpace{K,1}) where {K} = ProductSpace(spaces(ts)...,vs)
 
-×(ts1::ProductSpace{K},ts2::ProductSpace{K}) where {K} = ProductSpace((kind(ts1)..., kind(ts2)...))
+×(ts1::ProductSpace{K},ts2::ProductSpace{K}) where {K} = ProductSpace((spaces(ts1)..., spaces(ts2)...))
 
 # ⊗(t1::Tensor{K,R1},t2::Tensor{K,R2}) where {K,R1,R2} = 
 
-Base.show(io::IO, vs::AbstractSpace) = print(io, label(vs))
+Base.show(io::IO, ::VectorSpace{K,L}) where {K,L} = print(io, L)
 
-Base.show(io::IO, vs::VectorSpace{K,<:Covector{K}}) where {K} = print(io, label(vs), "⃰")
+Base.show(io::IO, ::DualSpace{K,L}) where {K,L} = print(io, L, "⃰")
 
-Base.show(io::IO, vs::Type{<:AbstractSpace}) = print(io, label(vs()))
+Base.show(io::IO, ::ProductSpace{K,N,S}) where {K,N,S} = print(io, join(S, " × "))
 
 end # module
