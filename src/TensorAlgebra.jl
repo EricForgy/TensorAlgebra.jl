@@ -4,13 +4,13 @@ using LinearAlgebra
 
 export Tensor, Covector, VectorSpace, ProductSpace, spaces, label, field, degree, dual, domain, ×
 
-abstract type AbstractSpace{K,N,L} end
+abstract type AbstractSpace{K,N} end
 
-struct VectorSpace{K,L} <: AbstractSpace{K,1,L} end
+struct VectorSpace{K,L} <: AbstractSpace{K,1} end
 
-struct DualSpace{K,L} <: AbstractSpace{K,1,L} end
+struct DualSpace{K,L} <: AbstractSpace{K,1} end
 
-struct ProductSpace{K,N,S,L} <: AbstractSpace{K,N,L} end
+struct ProductSpace{K,N,S} <: AbstractSpace{K,N} end
 
 struct Tensor{K,N,D <: AbstractSpace{K}} <: AbstractArray{K,N}
     array::Array{K,N}
@@ -30,7 +30,7 @@ degree(::Tensor{K,N}) where {K,N} = N
 
 spaces(::ProductSpace{K,N,S}) where {K,N,S} = S
 
-label(::AbstractSpace{K,N,L}) where {K,N,L} = L
+label(::Union{VectorSpace{K,L},DualSpace{K,L}}) where {K,L} = L
 
 dual(::VectorSpace{K,L}) where {K,L} = DualSpace{K,L}()
 
@@ -46,7 +46,7 @@ Vector(::VectorSpace{K,L},a) where {K,L} = Tensor{K,1,DualSpace{K,L}}(a)
 VectorSpace(L::Symbol,::Type{K}) where {K} = VectorSpace{K,L}()
 
 ProductSpace(args::AbstractSpace{K,1}...) where {K} = 
-    ProductSpace{K,length(args),(args...,),Symbol(join(args," × "))}()
+    ProductSpace{K,length(args),(args...,)}()
 
 Tensor(::D,a::Array{K,N}) where {K,N,D<:AbstractSpace{K,N}} = Tensor{K,N,D}(a)
 
