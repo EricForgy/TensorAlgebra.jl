@@ -35,6 +35,8 @@ degree(::AbstractSpace{K,N}) where {K,N} = N
 
 degree(::AbstractTensor{K,N}) where {K,N} = N
 
+spaces(as::AbstractSpace{K,1}) where {K} = (as,)
+
 spaces(::ProductSpace{K,N,S}) where {K,N,S} = S
 
 label(::Union{VectorSpace{K,L},DualSpace{K,L}}) where {K,L} = L
@@ -51,8 +53,7 @@ Vector(::VectorSpace{K,L},a) where {K,L} = Tensor{K,1,DualSpace{K,L}}(a)
 
 VectorSpace(L::Symbol,::Type{K}) where {K} = VectorSpace{K,L}()
 
-ProductSpace(args::AbstractSpace{K,1}...) where {K} = 
-    ProductSpace{K,length(args),(args...,)}()
+ProductSpace(args::AbstractSpace{K,1}...) where {K} = ProductSpace{K,length(args),(args...,)}()
 
 Tensor(::D,a::Array{K,N}) where {K,N,D<:AbstractSpace{K,N}} = Tensor{K,N,D}(a)
 
@@ -70,12 +71,57 @@ tensors(t::Tensor) = t
 
 tensors(tp::TensorProduct) = tp.tensors
 
-function (f::Tensor{K,N})(x::Tensor{K,N}) where {K,N}
-    dual(domain(f)) === domain(x) || error("Domain mismatch")
-    dot(f.array, x.array)
+function (f::Tensor{K,2})(::typeof(-), x::Tensor{K,1}) where {K}
+    dom = spaces(domain(f)) 
+    dual(dom[2]) === domain(x) || error("Domain mismatch")
+    Tensor(dom[1],f.array*x.array)
 end
 
-(f::Tensor{K,N,D})(x::K) where {K,N,D} = Tensor{K,N,D}(x*f.array)
+function (f::Tensor{K,2})(x::Tensor{K,1},::typeof(-)) where {K}
+    dom = spaces(domain(f)) 
+    dual(dom[1]) === domain(x) || error("Domain mismatch")
+    Tensor(dom[2],(x.array'*f.array).parent)
+end
+
+function (f::AbstractTensor{K,N})(x::AbstractTensor{K,N}) where {K,N}
+    dual(domain(f)) === domain(x) || error("Domain mismatch")
+    dot(f, x)
+end
+
+(f::Tensor{K,N})(::Vararg{typeof(-),N}) where {K,N} = f
+
+(f::Tensor{K,N})(xs::Vararg{Tensor{K,1},N}) where {K,N} = dot(f,TensorProduct(xs...))
+
+function (f::AbstractTensor{K,N})(xs::Vararg{Union{typeof(-),AbstractTensor{K,1}},N}) where {K,N}
+    println("General version called")
+    isarg = xs .!== -
+    indims = findall(isarg)
+    t = TensorProduct(xs[indims]...)
+    any(.!isarg) || return dot(f,t)
+    outdims = findall(.!isarg)
+    a = reshape(mapslices(f,dims=indims) do slice
+        dot(t,slice)
+    end,size(f)[outdims]...)
+    d = ProductSpace(spaces(domain(f))[outdims]...)
+    Tensor(d,a)
+end
+
+# function (f::Tensor{K,N})(xs::Vararg{Union{typeof(-),Tensor{K,1}},N}) where {K,N}
+#     doms = collect(spaces(domain(f)))
+#     value = zero(K)
+#     for (ix,x) in enumerate(xs)
+#         isa(x,typeof(-)) && continue
+#         dom = doms[ix]
+#         dual(dom) === domain(x) || error("Domain mismatch")
+#         sz = collect(size(f.array))
+#         dim = splice!(sz,ix)
+#         value = zeros(K,(sz...,))
+#         for (islice,slice) in enumerate(eachslice(f.array,dims=ix))
+#             value += slice*x[islice]
+#         end
+#     end
+#     value
+# end
 
 Base.size(t::Tensor) = size(t.array)
 
@@ -137,5 +183,7 @@ Base.show(io::IO, ::DualSpace{K,L}) where {K,L} = print(io, L, "⃰")
 Base.show(io::IO, ::Type{DualSpace{K,L}}) where {K,L} = print(io, L, "⃰")
 
 Base.show(io::IO, ::ProductSpace{K,N,S}) where {K,N,S} = print(io, join(S, " × "))
+
+Base.show(io::IO, ::Type{ProductSpace{K,N,S}}) where {K,N,S} = print(io, join(S, " × "))
 
 end # module
