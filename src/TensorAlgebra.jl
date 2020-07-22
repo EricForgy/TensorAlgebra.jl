@@ -55,7 +55,7 @@ VectorSpace(L::Symbol,::Type{K}) where {K} = VectorSpace{K,L}()
 
 ProductSpace(args::AbstractSpace{K,1}...) where {K} = ProductSpace{K,length(args),(args...,)}()
 
-Tensor(::D,a::Array{K,N}) where {K,N,D<:AbstractSpace{K,N}} = Tensor{K,N,D}(a)
+Tensor(::D,a) where {K,N,D<:AbstractSpace{K,N}} = Tensor{K,N,D}(a)
 
 TensorProduct(args::Tensor{K}...) where {K} = TensorProduct{K,sum(degree.(args)),typeof((args...,))}(one(K),(args...,))
 
@@ -93,7 +93,6 @@ end
 (f::Tensor{K,N})(xs::Vararg{Tensor{K,1},N}) where {K,N} = dot(f,TensorProduct(xs...))
 
 function (f::AbstractTensor{K,N})(xs::Vararg{Union{typeof(-),AbstractTensor{K,1}},N}) where {K,N}
-    println("General version called")
     isarg = xs .!== -
     indims = findall(isarg)
     t = TensorProduct(xs[indims]...)
@@ -106,23 +105,6 @@ function (f::AbstractTensor{K,N})(xs::Vararg{Union{typeof(-),AbstractTensor{K,1}
     Tensor(d,a)
 end
 
-# function (f::Tensor{K,N})(xs::Vararg{Union{typeof(-),Tensor{K,1}},N}) where {K,N}
-#     doms = collect(spaces(domain(f)))
-#     value = zero(K)
-#     for (ix,x) in enumerate(xs)
-#         isa(x,typeof(-)) && continue
-#         dom = doms[ix]
-#         dual(dom) === domain(x) || error("Domain mismatch")
-#         sz = collect(size(f.array))
-#         dim = splice!(sz,ix)
-#         value = zeros(K,(sz...,))
-#         for (islice,slice) in enumerate(eachslice(f.array,dims=ix))
-#             value += slice*x[islice]
-#         end
-#     end
-#     value
-# end
-
 Base.size(t::Tensor) = size(t.array)
 
 Base.size(t::TensorProduct) = ((size.(t.tensors)...)...,)
@@ -134,7 +116,7 @@ function Base.getindex(tp::TensorProduct,ix::Vararg{Int})
     offset = 0
     for (i,tensor) in enumerate(tp.tensors)
         it = degree(tensor) === 1 ? ix[offset+1] : ix[offset+1:offset+degree(tensor)]
-        value *= getindex(tensor, it)
+        value *= getindex(tensor, it...)
         offset += degree(tensor)
     end
     value*scalar(tp)
