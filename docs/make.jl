@@ -9,3 +9,7 @@ makedocs(sitename="TensorAlgebra.jl",
         footer=nothing
     )
 )
+
+deploydocs(
+    repo = "github.com/EricForgy/TensorAlgebra.jl.git",
+)
