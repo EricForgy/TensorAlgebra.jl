@@ -140,7 +140,7 @@ Base.first(ts::AbstractProductSpace) = first(spaces(ts))
 
 Base.last(ts::AbstractProductSpace) = last(spaces(ts))
 
-Base.in(t::Tensor{K}, vs::AbstractSpace{K}) where {K} = dual(domain(t)) === vs
+Base.in(t::AbstractTensor{K}, vs::AbstractSpace{K}) where {K} = dual(domain(t)) === vs
 
 Base.:*(x::Number,t::Tensor{K,N,D}) where {K,N,D} = Tensor{K,N,D}(x*t.array)
 
