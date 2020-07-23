@@ -64,21 +64,25 @@ end
     @test V×W === ProductSpace(V,W)
     @test V×(V^*) === ProductSpace(V,dual(V))
     @test V×(W^*) === ProductSpace(V,dual(W))
+    @test V⊗V === TensorSpace(V,V)
+    @test V⊗W === TensorSpace(V,W)
+    @test V⊗(V^*) === TensorSpace(V,dual(V))
+    @test V⊗(W^*) === TensorSpace(V,dual(W))
 end
 
 @testset "Tensor products" begin
-    @test (domain(uα) === U×U) === false
-    @test (domain(uα) === (U^*)×U) === true
-    @test (domain(uα) === U×U^*) === false
-    @test (domain(uα) === (U×U)^*) === false
-    @test (domain(uvw) === U×V×W) === false
-    @test (domain(uvw) === (U^*)×V×W) === false
-    @test (domain(uvw) === U×(V^*)×W) === false
-    @test (domain(uvw) === U×V×W^*) === false
-    @test (domain(uvw) === ((U×V)^*)×W) === false
-    @test (domain(uvw) === U×(V×W)^*) === false
-    @test (domain(uvw) === (U×V×W)^*) === true
-    @test (domain(αβγ) === U×V×W) === true
+    @test (domain(uα) === U⊗U) === false
+    @test (domain(uα) === (U^*)⊗U) === true
+    @test (domain(uα) === U⊗U^*) === false
+    @test (domain(uα) === (U⊗U)^*) === false
+    @test (domain(uvw) === U⊗V⊗W) === false
+    @test (domain(uvw) === (U^*)⊗V⊗W) === false
+    @test (domain(uvw) === U⊗(V^*)⊗W) === false
+    @test (domain(uvw) === U⊗V⊗W^*) === false
+    @test (domain(uvw) === ((U⊗V)^*)⊗W) === false
+    @test (domain(uvw) === U⊗(V⊗W)^*) === false
+    @test (domain(uvw) === (U⊗V⊗W)^*) === true
+    @test (domain(αβγ) === U⊗V⊗W) === true
 end
 
 @testset "Evaluation" begin

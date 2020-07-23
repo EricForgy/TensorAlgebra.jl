@@ -2,7 +2,7 @@ module TensorAlgebra
 
 using LinearAlgebra
 
-export Tensor, Covector, VectorSpace, DualSpace, ProductSpace, TensorProduct, spaces, tensors, label, field, degree, dual, domain, ×, ⊗
+export Tensor, Covector, VectorSpace, DualSpace, ProductSpace, TensorSpace, TensorProduct, spaces, tensors, label, field, degree, dual, domain, ×, ⊗
 
 abstract type AbstractSpace{K,N} end
 
@@ -10,7 +10,11 @@ struct VectorSpace{K,L} <: AbstractSpace{K,1} end
 
 struct DualSpace{K,L} <: AbstractSpace{K,1} end
 
-struct ProductSpace{K,N,S} <: AbstractSpace{K,N} end
+abstract type AbstractProductSpace{K,N,S} <: AbstractSpace{K,N} end
+
+struct ProductSpace{K,N,S} <: AbstractProductSpace{K,N,S} end
+
+struct TensorSpace{K,N,S} <: AbstractProductSpace{K,N,S} end
 
 abstract type AbstractTensor{K,N} <: AbstractArray{K,N} end
 
@@ -37,15 +41,13 @@ degree(::AbstractTensor{K,N}) where {K,N} = N
 
 spaces(as::AbstractSpace{K,1}) where {K} = (as,)
 
-spaces(::ProductSpace{K,N,S}) where {K,N,S} = S
+spaces(::AbstractProductSpace{K,N,S}) where {K,N,S} = S
 
 label(::Union{VectorSpace{K,L},DualSpace{K,L}}) where {K,L} = L
 
 dual(::VectorSpace{K,L}) where {K,L} = DualSpace{K,L}()
 
 dual(::DualSpace{K,L}) where {K,L} = VectorSpace{K,L}()
-
-dual(ps::ProductSpace) = ProductSpace(dual.(spaces(ps))...)
 
 Covector(::VectorSpace{K,L},a) where {K,L} = Tensor{K,1,VectorSpace{K,L}}(a)
 
@@ -55,13 +57,23 @@ VectorSpace(L::Symbol,::Type{K}) where {K} = VectorSpace{K,L}()
 
 ProductSpace(args::AbstractSpace{K,1}...) where {K} = ProductSpace{K,length(args),(args...,)}()
 
+TensorSpace(args::AbstractSpace{K,1}...) where {K} = TensorSpace{K,length(args),(args...,)}()
+
+TensorSpace(::ProductSpace{K,N,S}) where {K,N,S} = TensorSpace{K,N,S}()
+
+(::Type{PS})(args...) where {PS<:ProductSpace} = ProductSpace(args...)
+
+(::Type{TS})(args...) where {TS<:TensorSpace} = TensorSpace(args...)
+
+dual(ps::PS) where {PS<:AbstractProductSpace} = PS(dual.(spaces(ps))...)
+
 Tensor(::D,a) where {K,N,D<:AbstractSpace{K,N}} = Tensor{K,N,D}(a)
 
 TensorProduct(args::Tensor{K}...) where {K} = TensorProduct{K,sum(degree.(args)),typeof((args...,))}(one(K),(args...,))
 
 domain(::Tensor{K,N,D}) where {K,N,D} = D()
 
-domain(tp::TensorProduct{K,N,S}) where {K,N,S} = ProductSpace{K,N,domain.(tensors(tp))}()
+domain(tp::TensorProduct{K,N,S}) where {K,N,S} = TensorSpace{K,N,domain.(tensors(tp))}()
 
 scalar(::Tensor{K}) where {K} = one(K)
 
@@ -101,7 +113,7 @@ function (f::AbstractTensor{K,N})(xs::Vararg{Union{typeof(-),AbstractTensor{K,1}
     a = reshape(mapslices(f,dims=indims) do slice
         dot(t,slice)
     end,size(f)[outdims]...)
-    d = ProductSpace(spaces(domain(f))[outdims]...)
+    d = TensorSpace(spaces(domain(f))[outdims]...)
     Tensor(d,a)
 end
 
@@ -124,11 +136,11 @@ end
 
 Base.:^(v::AbstractSpace,::typeof(*)) = dual(v)
 
-Base.first(ts::ProductSpace) = first(spaces(ts))
+Base.first(ts::AbstractProductSpace) = first(spaces(ts))
 
-Base.last(ts::ProductSpace) = last(spaces(ts))
+Base.last(ts::AbstractProductSpace) = last(spaces(ts))
 
-Base.in(t::Tensor{K,1}, vs::AbstractSpace{K,1}) where {K} = dual(domain(t)) === vs
+Base.in(t::Tensor{K}, vs::AbstractSpace{K}) where {K} = dual(domain(t)) === vs
 
 Base.:*(x::Number,t::Tensor{K,N,D}) where {K,N,D} = Tensor{K,N,D}(x*t.array)
 
@@ -145,6 +157,14 @@ Base.:*(tp::TensorProduct{K,N,S},x::Number) where {K,N,S} = x*tp
 ×(ts::ProductSpace{K},vs::AbstractSpace{K,1}) where {K} = ProductSpace(spaces(ts)...,vs)
 
 ×(ts1::ProductSpace{K},ts2::ProductSpace{K}) where {K} = ProductSpace((spaces(ts1)..., spaces(ts2)...))
+
+⊗(vs1::AbstractSpace{K,1},vs2::AbstractSpace{K,1}) where {K} = TensorSpace(vs1,vs2)
+
+⊗(vs::AbstractSpace{K,1},ts::TensorSpace{K}) where {K} = TensorSpace(vs,spaces(ts)...)
+
+⊗(ts::TensorSpace{K},vs::AbstractSpace{K,1}) where {K} = TensorSpace(spaces(ts)...,vs)
+
+⊗(ts1::TensorSpace{K},ts2::TensorSpace{K}) where {K} = TensorSpace((spaces(ts1)..., spaces(ts2)...))
 
 ⊗(t1::Tensor{K,R1},t2::Tensor{K,R2}) where {K,R1,R2} = TensorProduct{K,R1+R2,typeof((t1,t2))}(one(K),(t1,t2))
 
@@ -167,5 +187,9 @@ Base.show(io::IO, ::Type{DualSpace{K,L}}) where {K,L} = print(io, L, "⃰")
 Base.show(io::IO, ::ProductSpace{K,N,S}) where {K,N,S} = print(io, join(S, " × "))
 
 Base.show(io::IO, ::Type{ProductSpace{K,N,S}}) where {K,N,S} = print(io, join(S, " × "))
+
+Base.show(io::IO, ::TensorSpace{K,N,S}) where {K,N,S} = print(io, join(S, " ⊗ "))
+
+Base.show(io::IO, ::Type{TensorSpace{K,N,S}}) where {K,N,S} = print(io, join(S, " ⊗ "))
 
 end # module
