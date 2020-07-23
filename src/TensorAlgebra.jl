@@ -180,9 +180,9 @@ Base.show(io::IO, ::VectorSpace{K,L}) where {K,L} = print(io, L)
 
 Base.show(io::IO, ::Type{VectorSpace{K,L}}) where {K,L} = print(io, L)
 
-Base.show(io::IO, ::DualSpace{K,L}) where {K,L} = print(io, L, "⃰")
+Base.show(io::IO, ::DualSpace{K,L}) where {K,L} = print(io, L, "^*")
 
-Base.show(io::IO, ::Type{DualSpace{K,L}}) where {K,L} = print(io, L, "⃰")
+Base.show(io::IO, ::Type{DualSpace{K,L}}) where {K,L} = print(io, L, "^*")
 
 Base.show(io::IO, ::ProductSpace{K,N,S}) where {K,N,S} = print(io, join(S, " × "))
 

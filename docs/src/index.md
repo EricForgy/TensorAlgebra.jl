@@ -153,7 +153,7 @@ A vector is then an element of a vector space and can be constructed via
 
 ```julia
 julia> v = Vector(V,[1,2,3])
-3-element Tensor{Float64,1,V⃰}:
+3-element Tensor{Float64,1,V^*}:
  1.0
  2.0
  3.0
@@ -169,9 +169,9 @@ true
 There are two things to note above:
 
  - Arrays are promoted to the type of the respective vector space
- - The type of a vector is `Tensor{Float64,1,V⃰}`
+ - The type of a vector is `Tensor{Float64,1,V^*}`
 
-The third parameter of the vector type, i.e. `V⃰`, denotes the dual space of the original vector space `V`.
+The third parameter of the vector type, i.e. `V^*`, denotes the dual space of the original vector space `V`.
 
 Like TensorKit.jl, a tensor is thought of conceptually as a multilinear map
 
@@ -262,7 +262,7 @@ so we can construct the tensor ``t`` via
 
 ```julia
 julia> t = Tensor((V⊗W)^*,[1 2 3 4;5 6 7 8;9 10 11 12])
-3×4 Tensor{Float64,2,V⃰ ⊗ W⃰}:
+3×4 Tensor{Float64,2,V^* ⊗ W^*}:
  1.0   2.0   3.0   4.0
  5.0   6.0   7.0   8.0
  9.0  10.0  11.0  12.0
@@ -345,7 +345,7 @@ In this way, we can consider partial evaluation:
 
 ```julia
 julia> t(-,β)
-3-element Tensor{Float64,1,V⃰}:
+3-element Tensor{Float64,1,V^*}:
   30.0
   70.0
  110.0
@@ -355,7 +355,7 @@ and
 
 ```julia
 julia> t(α,-)
-4-element Tensor{Float64,1,W⃰}:
+4-element Tensor{Float64,1,W^*}:
  38.0
  44.0
  50.0
