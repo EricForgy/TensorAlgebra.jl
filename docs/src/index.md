@@ -162,7 +162,7 @@ julia> v = Vector(V,[1,2,3])
  with
 
 ```julia
-julia> v in V
+julia> v ∈ V
 true
 ```
 
@@ -220,7 +220,7 @@ julia> α = Covector(V,[1,2,3])
 with
 
 ```julia
-julia> α in V^*
+julia> α ∈ V^*
 true
 ``` 
 
@@ -271,7 +271,7 @@ julia> t = Tensor((V⊗W)^*,[1 2 3 4;5 6 7 8;9 10 11 12])
 with 
 
 ```julia
-julia> t in V⊗W
+julia> t ∈ V⊗W
 true
 ```
 
@@ -309,7 +309,7 @@ julia> α⊗β
 with
 
 ```julia
-julia> α⊗β in (V⊗W)^*
+julia> α⊗β ∈ (V⊗W)^*
 true
 ```
 
