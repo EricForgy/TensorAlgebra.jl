@@ -102,16 +102,26 @@ end
 
 (f::Tensor{K,N})(::Vararg{typeof(-),N}) where {K,N} = f
 
-(f::Tensor{K,N})(xs::Vararg{Tensor{K,1},N}) where {K,N} = dot(f,TensorProduct(xs...))
+function (f::Tensor{K,1})(x::Tensor{K,1}) where {K}
+    dual(domain(f)) === domain(x) || error("Domain mismatch")
+    dot(f,x)
+end
+
+function (f::Tensor{K,N})(xs::Vararg{Tensor{K,1},N}) where {K,N}
+    x = TensorProduct(xs...)
+    dual(domain(f)) === domain(x) || error("Domain mismatch")
+    dot(f,x)
+end
 
 function (f::AbstractTensor{K,N})(xs::Vararg{Union{typeof(-),AbstractTensor{K,1}},N}) where {K,N}
     isarg = xs .!== -
     indims = findall(isarg)
-    t = TensorProduct(xs[indims]...)
-    any(.!isarg) || return dot(f,t)
+    x = TensorProduct(xs[indims]...)
+    dual(domain(f)) === domain(x) || error("Domain mismatch")
+    any(.!isarg) || return dot(f,x)
     outdims = findall(.!isarg)
     a = reshape(mapslices(f,dims=indims) do slice
-        dot(t,slice)
+        dot(x,slice)
     end,size(f)[outdims]...)
     d = TensorSpace(spaces(domain(f))[outdims]...)
     Tensor(d,a)
