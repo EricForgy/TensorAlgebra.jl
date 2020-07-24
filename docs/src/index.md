@@ -145,7 +145,7 @@ Linear algebra and, by extension, tensor algebra are both about vector spaces an
 In TensorAlgebra.jl, a vector space is constructed via
 
 ```julia
-julia> V = VectorSpace(:V,Float64)
+julia> V = VectorSpace(:V,Float64,dims=(3,))
 V
 ```
 
