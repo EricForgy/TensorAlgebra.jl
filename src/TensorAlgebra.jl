@@ -29,6 +29,10 @@ struct TensorProduct{K,N,S} <: AbstractTensor{K,N}
     tensors::S
 end
 
+array(t::Tensor) = t.array
+
+array(t::TensorProduct) = collect(t)
+
 field(::AbstractSpace{K}) where {K} = K
 
 field(::AbstractTensor{K}) where {K} = K
@@ -57,7 +61,9 @@ VectorSpace(L::Symbol,::Type{K}) where {K} = VectorSpace{K,L}()
 
 ProductSpace(args::AbstractSpace{K,1}...) where {K} = ProductSpace{K,length(args),(args...,)}()
 
-TensorSpace(args::AbstractSpace{K,1}...) where {K} = TensorSpace{K,length(args),(args...,)}()
+TensorSpace(as::AbstractSpace{K,1}) where {K} = as
+
+TensorSpace(args::Vararg{<:AbstractSpace{K,1}}) where {K} = TensorSpace{K,length(args),(args...,)}()
 
 TensorSpace(::ProductSpace{K,N,S}) where {K,N,S} = TensorSpace{K,N,S}()
 
@@ -71,6 +77,8 @@ Tensor(::D,a) where {K,N,D<:AbstractSpace{K,N}} = Tensor{K,N,D}(a)
 
 TensorProduct(args::Tensor{K}...) where {K} = TensorProduct{K,sum(degree.(args)),typeof((args...,))}(one(K),(args...,))
 
+TensorProduct(t::Tensor) = t
+
 domain(::Tensor{K,N,D}) where {K,N,D} = D()
 
 domain(tp::TensorProduct{K,N,S}) where {K,N,S} = TensorSpace{K,N,domain.(tensors(tp))}()
@@ -83,16 +91,16 @@ tensors(t::Tensor) = t
 
 tensors(tp::TensorProduct) = tp.tensors
 
-function (f::Tensor{K,2})(::typeof(-), x::Tensor{K,1}) where {K}
+function (f::AbstractTensor{K,2})(::typeof(-), x::Tensor{K,1}) where {K}
     dom = spaces(domain(f)) 
     dual(dom[2]) === domain(x) || error("Domain mismatch")
-    Tensor(dom[1],f.array*x.array)
+    Tensor(dom[1],array(f)*array(x))
 end
 
-function (f::Tensor{K,2})(x::Tensor{K,1},::typeof(-)) where {K}
+function (f::AbstractTensor{K,2})(x::Tensor{K,1},::typeof(-)) where {K}
     dom = spaces(domain(f)) 
     dual(dom[1]) === domain(x) || error("Domain mismatch")
-    Tensor(dom[2],(x.array'*f.array).parent)
+    Tensor(dom[2],(array(x)'*array(f)).parent)
 end
 
 function (f::AbstractTensor{K,N})(x::AbstractTensor{K,N}) where {K,N}
@@ -117,7 +125,6 @@ function (f::AbstractTensor{K,N})(xs::Vararg{Union{typeof(-),AbstractTensor{K,1}
     isarg = xs .!== -
     indims = findall(isarg)
     x = TensorProduct(xs[indims]...)
-    dual(domain(f)) === domain(x) || error("Domain mismatch")
     any(.!isarg) || return dot(f,x)
     outdims = findall(.!isarg)
     a = reshape(mapslices(f,dims=indims) do slice
@@ -186,20 +193,20 @@ Base.:*(tp::TensorProduct{K,N,S},x::Number) where {K,N,S} = x*tp
 
 ⊗(t1::AbstractTensor,t2::AbstractTensor,ts::Vararg{<:AbstractTensor}) = TensorProduct(scalar(t1)*scalar(t2),t1⊗t2,ts...)
 
-Base.show(io::IO, ::VectorSpace{K,L}) where {K,L} = print(io, L)
+# Base.show(io::IO, ::VectorSpace{K,L}) where {K,L} = print(io, L)
 
-Base.show(io::IO, ::Type{VectorSpace{K,L}}) where {K,L} = print(io, L)
+# Base.show(io::IO, ::Type{VectorSpace{K,L}}) where {K,L} = print(io, L)
 
-Base.show(io::IO, ::DualSpace{K,L}) where {K,L} = print(io, L, "^*")
+# Base.show(io::IO, ::DualSpace{K,L}) where {K,L} = print(io, L, "^*")
 
-Base.show(io::IO, ::Type{DualSpace{K,L}}) where {K,L} = print(io, L, "^*")
+# Base.show(io::IO, ::Type{DualSpace{K,L}}) where {K,L} = print(io, L, "^*")
 
-Base.show(io::IO, ::ProductSpace{K,N,S}) where {K,N,S} = print(io, join(S, " × "))
+# Base.show(io::IO, ::ProductSpace{K,N,S}) where {K,N,S} = print(io, join(S, " × "))
 
-Base.show(io::IO, ::Type{ProductSpace{K,N,S}}) where {K,N,S} = print(io, join(S, " × "))
+# Base.show(io::IO, ::Type{ProductSpace{K,N,S}}) where {K,N,S} = print(io, join(S, " × "))
 
-Base.show(io::IO, ::TensorSpace{K,N,S}) where {K,N,S} = print(io, join(S, " ⊗ "))
+# Base.show(io::IO, ::TensorSpace{K,N,S}) where {K,N,S} = print(io, join(S, " ⊗ "))
 
-Base.show(io::IO, ::Type{TensorSpace{K,N,S}}) where {K,N,S} = print(io, join(S, " ⊗ "))
+# Base.show(io::IO, ::Type{TensorSpace{K,N,S}}) where {K,N,S} = print(io, join(S, " ⊗ "))
 
 end # module

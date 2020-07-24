@@ -13,15 +13,15 @@ function setup(::Type{K}=Float64) where {K}
     β = Covector(V,[1,2,3])
     γ = Covector(W,[1,2,3,4])
 
-    tuv = Tensor(U×V,[1 2 3;4 5 6])
-    tvv = Tensor(V×V,[1 2 3;4 5 6;7 8 9])
-    tvw = Tensor(V×W,[1 2 3 4;5 6 7 8;9 10 11 12])
+    tuv = Tensor(U⊗V,[1 2 3;4 5 6])
+    tvv = Tensor(V⊗V,[1 2 3;4 5 6;7 8 9])
+    tvw = Tensor(V⊗W,[1 2 3 4;5 6 7 8;9 10 11 12])
     auvw = Array{Float64,3}(undef,2,3,4)
     auvw[:,:,1] = [1 2 3;4 5 6]
     auvw[:,:,2] = [7 8 9;10 11 12]
     auvw[:,:,3] = [13 14 15;16 17 18]
     auvw[:,:,4] = [19 20 21;22 23 24]
-    tuvw = Tensor(U×V×W,auvw)
+    tuvw = Tensor(U⊗V⊗W,auvw)
 
     uα = u⊗α
     uvw = u⊗v⊗w
