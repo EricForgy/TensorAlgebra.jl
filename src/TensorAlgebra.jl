@@ -173,12 +173,12 @@ Base.last(ts::AbstractProductSpace) = last(spaces(ts))
 Base.in(t::AbstractTensor{K}, vs::AbstractSpace{K}) where {K} = dual(domain(t)) === TensorSpace(vs)
 
 function Base.:+(at1::AbstractTensor{K,N}, at2::AbstractTensor{K,N}) where {K,N}
-    domain(at1) === domain(at2) || error("Domain mismatch")
+    domain(at1) === domain(at2) || throw(DomainError(at2,"Domain mismatch: Expected $(domain(at1)). Got $(domain(at2))."))
     Tensor{K,N,typeof(domain(at1))}(collect(at1) + collect(at2))
 end
 
 function Base.:-(at1::AbstractTensor{K,N}, at2::AbstractTensor{K,N}) where {K,N}
-    domain(at1) === domain(at2) || error("Domain mismatch")
+    domain(at1) === domain(at2) || throw(DomainError(at2,"Domain mismatch: Expected $(domain(at1)). Got $(domain(at2))."))
     Tensor{K,N,typeof(domain(at1))}(collect(at1) - collect(at2))
 end
 

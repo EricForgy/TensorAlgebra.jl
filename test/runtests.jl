@@ -41,6 +41,8 @@ end
     @test_throws DomainError α(v)
     @test_throws DomainError (α⊗β)(-,u)
     @test_throws DomainError (α⊗β)(v,-)
+    @test_throws DomainError α⊗β+β⊗α
+    @test_throws DomainError α⊗β-β⊗α
 end
 
 @testset "Inclusion" begin
