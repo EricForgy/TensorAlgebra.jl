@@ -55,12 +55,12 @@ dual(::VectorSpace{K,L,D}) where {K,L,D} = DualSpace{K,L,D}()
 dual(::DualSpace{K,L,D}) where {K,L,D} = VectorSpace{K,L,D}()
 
 function Covector(vs::VectorSpace{K,L,D}, a) where {K,L,D}
-    size(a)[1] === D || throw(DimensionMismatch("Tried to create a covector of dimension $(size(a)) in the vector space $(label(vs)) of dimension $(D)."))
+    size(a)[1] === D || throw(DimensionMismatch("Tried to create a covector of dimension $(size(a)[1]) in the vector space $(label(vs)) of dimension $(D)."))
     Tensor{K,1,TensorSpace{K,1,(VectorSpace{K,L,D}(),)}}(a)
 end
 
 function Vector(vs::VectorSpace{K,L,D}, a) where {K,L,D}
-    size(a)[1] === D || throw(DimensionMismatch("Tried to create a vector of dimension $(size(a)) in the vector space $(label(vs)) of dimension $(D)."))
+    size(a)[1] === D || throw(DimensionMismatch("Tried to create a vector of dimension $(size(a)[1]) in the vector space $(label(vs)) of dimension $(D)."))
     Tensor{K,1,TensorSpace{K,1,(DualSpace{K,L,D}(),)}}(a)
 end
 
