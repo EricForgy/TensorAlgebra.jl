@@ -1,9 +1,9 @@
 using TensorAlgebra, Test
 
 function setup(::Type{K}=Float64) where {K}
-    U = VectorSpace(:U,K,dims=(2,))
-    V = VectorSpace(:V,K,dims=(3,))
-    W = VectorSpace(:W,K,dims=(4,))
+    U = VectorSpace(:U,K,2)
+    V = VectorSpace(:V,K,3)
+    W = VectorSpace(:W,K,4)
 
     u = Vector(U,[1,2])
     v = Vector(V,[1,2,3])
