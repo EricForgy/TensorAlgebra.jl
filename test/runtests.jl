@@ -44,30 +44,31 @@ end
 end
 
 @testset "Inclusion" begin
-    @test (v in U) === false
-    @test (v in V) === true
-    @test (v in W) === false
-    @test (v in U^*) === false
-    @test (v in V^*) === false
-    @test (v in W^*) === false
-    @test (w in U) === false
-    @test (w in V) === false
-    @test (w in W) === true
-    @test (w in U^*) === false
-    @test (w in V^*) === false
-    @test (w in W^*) === false
-    @test (α in U) === false
-    @test (α in V) === false
-    @test (α in W) === false
-    @test (α in U^*) === true
-    @test (α in V^*) === false
-    @test (α in W^*) === false
-    @test (β in U) === false
-    @test (β in V) === false
-    @test (β in W) === false
-    @test (β in U^*) === false
-    @test (β in V^*) === true
-    @test (β in W^*) === false
+    @test (v ∈ U) === false
+    @test (v ∈ V) === true
+    @test (v ∈ W) === false
+    @test (v ∈ U^*) === false
+    @test (v ∈ V^*) === false
+    @test (v ∈ W^*) === false
+    @test (w ∈ U) === false
+    @test (w ∈ V) === false
+    @test (w ∈ W) === true
+    @test (w ∈ U^*) === false
+    @test (w ∈ V^*) === false
+    @test (w ∈ W^*) === false
+    @test (α ∈ U) === false
+    @test (α ∈ V) === false
+    @test (α ∈ W) === false
+    @test (α ∈ U^*) === true
+    @test (α ∈ V^*) === false
+    @test (α ∈ W^*) === false
+    @test (β ∈ U) === false
+    @test (β ∈ V) === false
+    @test (β ∈ W) === false
+    @test (β ∈ U^*) === false
+    @test (β ∈ V^*) === true
+    @test (β ∈ W^*) === false
+    @test (α⊗β ∈ (U⊗V)^*) === true
 end
 
 @testset "Product spaces" begin

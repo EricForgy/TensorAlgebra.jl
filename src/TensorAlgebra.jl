@@ -72,6 +72,8 @@ TensorSpace(args::Vararg{<:AbstractSpace{K,1}}) where {K} = TensorSpace{K,length
 
 TensorSpace(::ProductSpace{K,N,S}) where {K,N,S} = TensorSpace{K,N,S}()
 
+TensorSpace(ts::TensorSpace{K,N,S}) where {K,N,S} = ts
+
 (::Type{PS})(args...) where {PS <: ProductSpace} = ProductSpace(args...)
 
 (::Type{TS})(args...) where {TS <: TensorSpace} = TensorSpace(args...)
