@@ -1,9 +1,9 @@
 using TensorAlgebra, Test
 
 function setup(::Type{K}=Float64) where {K}
-    U = VectorSpace(:U,K)
-    V = VectorSpace(:V,K)
-    W = VectorSpace(:W,K)
+    U = VectorSpace(:U,K,dims=(2,))
+    V = VectorSpace(:V,K,dims=(3,))
+    W = VectorSpace(:W,K,dims=(4,))
 
     u = Vector(U,[1,2])
     v = Vector(V,[1,2,3])
@@ -31,6 +31,17 @@ function setup(::Type{K}=Float64) where {K}
 end
 
 U,V,W,u,v,w,α,β,γ,tuv,tvv,tvw,tuvw,uα,uvw,αβγ = setup(Float64)
+
+@testset "Dimension errors" begin
+    @test_throws DimensionMismatch Vector(V,[1,2])
+    @test_throws DimensionMismatch Vector(V,[1,2,3,4])
+end
+
+@testset "Domain errors" begin
+    @test_throws DomainError α(v)
+    @test_throws DomainError (α⊗β)(-,u)
+    @test_throws DomainError (α⊗β)(v,-)
+end
 
 @testset "Inclusion" begin
     @test (v in U) === false
@@ -68,6 +79,12 @@ end
     @test V⊗W === TensorSpace(V,W)
     @test V⊗(V^*) === TensorSpace(V,dual(V))
     @test V⊗(W^*) === TensorSpace(V,dual(W))
+end
+
+@testset "Addition, subtraction and negation" begin
+    @test u+u ≈ 2*u
+    @test u-u ≈ 0*u
+    @test -u ≈ -1*u
 end
 
 @testset "Tensor products" begin
@@ -114,3 +131,4 @@ end
     @test tuvw(u,-,-)(v,w) ≈ tuvw(u,v,w)
     @test (α⊗β⊗γ⊗tuvw)(u,v,w,u,v,w) ≈ α(u)*v(β)*γ(w)*tuvw(u,v,w)
 end
+
