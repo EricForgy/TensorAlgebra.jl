@@ -194,6 +194,8 @@ Base.:*(x::Number,t::Tensor{K,N,D}) where {K,N,D} = Tensor{K,N,D}(x * t.array)
 
 Base.:*(t::Tensor{K,N,D},x::Number) where {K,N,D} = Tensor{K,N,D}(x * t.array)
 
+Base.:*(t1::Tensor{K,1,D},t2::Tensor{K,1,D}) where {K,D} = Tensor{K,1,D}(t1.array .* t2.array)
+
 Base.:*(x::Number,tp::TensorProduct{K,N,S}) where {K,N,S} = TensorProduct{K,N,S}(x * scalar(tp), tensors(tp))
 
 Base.:*(tp::TensorProduct{K,N,S},x::Number) where {K,N,S} = x * tp
